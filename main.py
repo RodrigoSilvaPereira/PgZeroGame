@@ -4,6 +4,7 @@ from pgzero.rect import Rect
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
+# ---------------- CONFIGURAÇÃO ----------------
 WIDTH, HEIGHT = 800, 600
 GRAVITY, TILE_SIZE, SPAWN_OFFSET = 0.5, 64, 10
 
@@ -21,6 +22,7 @@ HITBOX_OFFSET_Y = 20
 
 show_hitboxes = True
 
+# ---------------- FUNÇÃO AUXILIAR ----------------
 def get_floor_bounds(floor_y, length, start_x, invert):
     if invert:
         return start_x - length, start_x
@@ -203,27 +205,73 @@ class Enemy:
         if show_hitboxes:
             screen.draw.rect(self.get_hitbox(), (0, 0, 255))
 
-# ===================== Inicialização =====================
+# ===================== MENU =====================
+game_state = "menu"
+music_on = True
+
+buttons = {
+    "start": Rect((WIDTH // 2 - 100, 200), (200, 50)),
+    "music": Rect((WIDTH // 2 - 100, 300), (200, 50)),
+    "exit": Rect((WIDTH // 2 - 100, 400), (200, 50)),
+}
+
+def draw_menu():
+    screen.fill((50, 50, 80))
+    screen.draw.text("MY PLATFORMER GAME", center=(WIDTH//2, 100), fontsize=50, color="white")
+
+    screen.draw.filled_rect(buttons["start"], "green")
+    screen.draw.text("Start Game", center=buttons["start"].center, fontsize=30, color="black")
+
+    screen.draw.filled_rect(buttons["music"], "yellow")
+    status = "On" if music_on else "Off"
+    screen.draw.text(f"Music {status}", center=buttons["music"].center, fontsize=30, color="black")
+
+    screen.draw.filled_rect(buttons["exit"], "red")
+    screen.draw.text("Exit", center=buttons["exit"].center, fontsize=30, color="black")
+
+def on_mouse_down(pos):
+    global game_state, music_on
+    if game_state == "menu":
+        if buttons["start"].collidepoint(pos):
+            game_state = "playing"
+            if music_on:
+                music.play("background")  # Toca background.wav
+        elif buttons["music"].collidepoint(pos):
+            music_on = not music_on
+            if music_on:
+                if game_state == "playing":
+                    music.play("background")
+            else:
+                music.stop()
+        elif buttons["exit"].collidepoint(pos):
+            exit()
+
+# ===================== INICIALIZAÇÃO =====================
 first_floor_y, _, _, _ = FLOORS[0]
 player = Player((WIDTH // 2, first_floor_y - TILE_SIZE - SPAWN_OFFSET))
 enemy = Enemy((WIDTH // 4, first_floor_y - TILE_SIZE - SPAWN_OFFSET))
 
+# ===================== UPDATE E DRAW =====================
 def update():
-    player.update()
-    enemy.update()
+    if game_state == "playing":
+        player.update()
+        enemy.update()
 
 def draw():
-    screen.fill((150, 200, 255))
-    for floor_y, length, start_x, invert in FLOORS:
-        floor_left, floor_right = get_floor_bounds(floor_y, length, start_x, invert)
-        for x in range(floor_left, floor_right, TILE_SIZE):
-            screen.blit("castlehalfmid.png", (x, floor_y - TILE_SIZE))
-        if show_hitboxes:
-            screen.draw.rect(Rect((floor_left, floor_y - TILE_SIZE), (length, TILE_SIZE)), (0, 255, 0))
-    player.draw()
-    player.draw_hitbox()
-    enemy.draw()
-    enemy.draw_hitbox()
+    if game_state == "menu":
+        draw_menu()
+    elif game_state == "playing":
+        screen.fill((150, 200, 255))
+        for floor_y, length, start_x, invert in FLOORS:
+            floor_left, floor_right = get_floor_bounds(floor_y, length, start_x, invert)
+            for x in range(floor_left, floor_right, TILE_SIZE):
+                screen.blit("castlehalfmid.png", (x, floor_y - TILE_SIZE))
+            if show_hitboxes:
+                screen.draw.rect(Rect((floor_left, floor_y - TILE_SIZE), (length, TILE_SIZE)), (0, 255, 0))
+        player.draw()
+        player.draw_hitbox()
+        enemy.draw()
+        enemy.draw_hitbox()
 
 def on_key_down(key):
     global show_hitboxes
