@@ -42,9 +42,3 @@ Este é um jogo de plataforma simples feito com PgZero. O jogador deve derrotar 
 * **W**: Pular
 * **SPACE**: Atacar / iniciar jogo no menu
 * **Clique nos botões do menu** para iniciar, ligar/desligar música ou sair
-
-## Observações
-
-* O jogo é feito apenas com PgZero, math e random.
-* Nenhuma outra biblioteca é necessária.
-* Mantenha as imagens e arquivos de som na mesma pasta do `main.py`.
